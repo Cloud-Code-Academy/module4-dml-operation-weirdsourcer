@@ -270,7 +270,7 @@ public with sharing class DMLOperations {
             }
 
 		// Upsert the Contacts
-        upsert as user contactsToUpsert;
+        update as user contactsToUpsert;
 	}
 
     /**
