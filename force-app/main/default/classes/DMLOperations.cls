@@ -269,8 +269,8 @@ public with sharing class DMLOperations {
             con.AccountId = myAccMap.get(con.LastName);            
             }
 
-		// Upsert the Contacts
-        update as user contactsToUpsert;
+		// Insert the Contacts
+        insert as user contactsToUpsert;
 	}
 
     /**
