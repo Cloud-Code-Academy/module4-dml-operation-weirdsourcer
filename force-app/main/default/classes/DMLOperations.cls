@@ -230,8 +230,7 @@ public with sharing class DMLOperations {
 	 * @param contactsToUpsert List of Contacts to be upserted and linked to accounts.
 	 */
 	public static void upsertAccountsWithContacts(List<Contact> contactsToUpsert) {
-		// Loop through each Contact
-
+		// Loop through each Contact to extract the lastnames
         Set<String> lastName = new Set<String>();
         for (Contact con : contactsToUpsert) {
             lastName.add(con.LastName);
@@ -239,27 +238,36 @@ public with sharing class DMLOperations {
 
 		// Extract the Account Name from Contact's LastName
         
-		// Get the account based on the name or create one if it doesn't exist
+		// Get the account based on the name 
+        Map<String, String> myAccMap = new Map<String, String>();
         List<Account> myReadAccList = [SELECT Id, Name FROM Account WHERE Name IN :lastName WITH USER_MODE];
-        Map<String, String> myReadAccMap = new Map<String, String>();
-            for (Account acc : myReadAccList) {
-                myReadAccMap.put(Acc.Name, Acc.Id);
-            }
-		// Link the Contact to its Account using the Account Id
-        List<Account> myWriteAcc = new List<Account>();
-        for (Contact con : contactsToUpsert) {
-            if (myReadAccMap.containsKey(con.LastName)) {
-                con.AccountId = myReadAccMap.get(con.LastName);
-            } else {
-                Account myAcc = new Account(Name = con.LastName);
-                myWriteAcc.add(myAcc);
-                con.Account.Name = con.LastName;            
+        
+        // Map Account Name with Id
+        for (Account acc : myReadAccList) {
+            myAccMap.put(Acc.Name, Acc.Id);
+        }
+
+        //  Or create one if it doesn't exist
+        List<Account> myWriteAccList = new List<Account>();
+        for (String ln : lastName) {
+            if (!myAccMap.containsKey(ln)) {
+                Account myWriteAcc = new Account(Name = ln);
+                myWriteAccList.add(myWriteAcc);
             }
         }
 
-        insert as user myWriteAcc;
+        Database.insert(myWriteAccList, AccessLevel.USER_MODE);
+        
 
-
+        // Update account map 
+        for (Account acc : myWriteAccList) {
+            myAccMap.put(acc.Name, acc.Id);
+        }
+            
+		// Link the Contact to its Account using the Account Id        
+        for (Contact con : contactsToUpsert) {
+            con.AccountId = myAccMap.get(con.LastName);            
+            }
 
 		// Upsert the Contacts
         upsert as user contactsToUpsert;
