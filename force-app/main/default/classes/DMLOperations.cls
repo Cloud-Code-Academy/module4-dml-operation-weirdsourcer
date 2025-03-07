@@ -17,7 +17,7 @@
  * The methods within this class serve as practical examples of different DML operations,
  * allowing developers to learn through practice and examples.
  *
- * @author Your Name
+ * @author Ola Okunola
  */
 
 
@@ -59,6 +59,7 @@ public with sharing class DMLOperations {
 
         // Insert the Account
         //insert as user myAccount;
+        Database.insert(myAccount, AccessLevel.USER_MODE);
 
     }
 
